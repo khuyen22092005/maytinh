@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Máy Tính Cầm Tay</title>
+    <style>
+        /* Reset CSS */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Cài đặt cơ bản cho body */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f8f8f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Kiểu dáng cho máy tính */
+        .calculator {
+            background-color: #34495e;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            width: 400px;
+        }
+
+        /* Ô hiển thị */
+        .display {
+            background-color: #59d8bf;
+            color: #fff;
+            text-align: right;
+            font-size: 2.5em;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            min-height: 60px;
+            word-wrap: break-word;
+            overflow: hidden;
+        }
+
+        /* Bố cục nút */
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        /* Kiểu dáng chung cho các nút */
+        .btn {
+            padding: 20px;
+            font-size: 1.5em;
+            border: none;
+            border-radius: 10px;
+            background-color: #ecf0f1;
+            color: #2c3e50;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        /* Hiệu ứng hover cho nút */
+        .btn:hover {
+            background-color: #bdc3c7;
+        }
+
+        /* Hiệu ứng khi nhấn nút */
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Kiểu dáng cho các nút toán tử */
+        .operator {
+            background-color: #e67e22;
+            color: #fff;
+        }
+
+        .operator:hover {
+            background-color: #d35400;
+        }
+
+        /* Kiểu dáng cho các nút chức năng (C, DEL, +/-, x², √) */
+        .function {
+            background-color: #95a5a6;
+            color: #fff;
+        }
+
+        .function:hover {
+            background-color: #7f8c8d;
+        }
+
+        /* Kiểu dáng cho các nút bộ nhớ (M+, M-, RM) */
+        .memory {
+            background-color: #8e44ad;
+            color: #fff;
+        }
+
+        .memory:hover {
+            background-color: #732d91;
+        }
+
+        /* Kiểu dáng cho nút bằng (=) */
+        .equal {
+            background-color: #27ae60;
+            color: #fff;
+            grid-column: span 2;
+        }
+
+        .equal:hover {
+            background-color: #1e8449;
+        }
+
+        /* Kiểu dáng cho nút số 0 */
+        .zero {
+            grid-column: span 4 ;
+        }
+
+        /* Responsive thiết kế cho màn hình nhỏ */
+        @media (max-width: 400px) {
+            .calculator {
+                width: 90%;
+            }
+
+            .display {
+                font-size: 2em;
+                padding: 10px;
+            }
+
+            .btn {
+                padding: 15px;
+                font-size: 1.2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="display" id="display">0</div>
+        <div class="buttons">
+            <!-- Hàng 1: Các nút chức năng -->
+            <button class="btn function" onclick="clearDisplay()">C</button>
+            <button class="btn function" onclick="deleteLast()">DEL</button>
+            <button class="btn function" onclick="toggleSign()">+/-</button>
+            <button class="btn operator" onclick="appendOperator('/')">÷</button>
+
+            <!-- Hàng 2: Các nút bộ nhớ -->
+            <button class="btn memory" onclick="memoryAdd()">M+</button>
+            <button class="btn memory" onclick="memorySubtract()">M-</button>
+            <button class="btn memory" onclick="memoryRecall()">MR</button>
+            <button class="btn operator" onclick="appendOperator('*')">×</button>
+
+            <!-- Hàng 3: Số 7,8,9 và phép trừ -->
+            <button class="btn" onclick="appendNumber('7')">7</button>
+            <button class="btn" onclick="appendNumber('8')">8</button>
+            <button class="btn" onclick="appendNumber('9')">9</button>
+            <button class="btn operator" onclick="appendOperator('-')">-</button>
+
+            <!-- Hàng 4: Số 4,5,6 và phép cộng -->
+            <button class="btn" onclick="appendNumber('4')">4</button>
+            <button class="btn" onclick="appendNumber('5')">5</button>
+            <button class="btn" onclick="appendNumber('6')">6</button>
+            <button class="btn operator" onclick="appendOperator('+')">+</button>
+
+            <!-- Hàng 5: Số 1,2,3 và dấu chấm -->
+            <button class="btn" onclick="appendNumber('1')">1</button>
+            <button class="btn" onclick="appendNumber('2')">2</button>
+            <button class="btn" onclick="appendNumber('3')">3</button>
+            <button class="btn" onclick="appendNumber('.')">.</button>
+
+            <!-- Hàng 6: Nút x², √ và bằng -->
+            <button class="btn function" onclick="square()">x²</button>
+            <button class="btn function" onclick="squareRoot()">√</button>
+            <button class="btn equal" onclick="calculate()">=</button>
+
+            <!-- Hàng 7: Nút số 0 -->
+            <button class="btn zero" onclick="appendNumber('0')">0</button>
+        </div>
+    </div>
+
+    <script>
+        // Lấy phần tử hiển thị
+        const display = document.getElementById('display');
+
+        // Biến lưu trữ bộ nhớ
+        let memory = 0;
+
+        /**
+         * Thêm số hoặc dấu chấm thập phân vào ô hiển thị
+         * @param {string} number - Số hoặc dấu chấm được nhấn
+         */
+        function appendNumber(number) {
+            if (display.textContent === "0" && number !== '.') {
+                display.textContent = number;
+            } else if (number === '.' && display.textContent.includes('.')) {
+                // Ngăn chặn việc nhập nhiều dấu chấm
+                return;
+            } else {
+                display.textContent += number;
+            }
+        }
+
+        /**
+         * Thêm toán tử vào ô hiển thị
+         * @param {string} operator - Toán tử được nhấn
+         */
+        function appendOperator(operator) {
+            const operators = ['+', '-', '*', '/'];
+            const lastChar = display.textContent.slice(-1);
+            
+            if (operators.includes(lastChar)) {
+                // Thay thế toán tử hiện tại bằng toán tử mới
+                display.textContent = display.textContent.slice(0, -1) + operator;
+            } else if (display.textContent.length > 0) {
+                display.textContent += operator;
+            }
+        }
+
+        /**
+         * Xóa toàn bộ nội dung ô hiển thị
+         */
+        function clearDisplay() {
+            display.textContent = "0";
+        }
+
+        /**
+         * Xóa ký tự cuối cùng trong ô hiển thị
+         */
+        function deleteLast() {
+            if (display.textContent.length > 1) {
+                display.textContent = display.textContent.slice(0, -1);
+            } else {
+                display.textContent = "0";
+            }
+        }
+
+        /**
+         * Chuyển đổi dấu của số hiện tại
+         */
+        function toggleSign() {
+            if (display.textContent === "0") return;
+            if (display.textContent.startsWith("-")) {
+                display.textContent = display.textContent.slice(1);
+            } else {
+                display.textContent = "-" + display.textContent;
+            }
+        }
+
+        /**
+         * Tính bình phương của số hiện tại
+         */
+        function square() {
+            try {
+                let value = parseFloat(display.textContent);
+                let result = Math.pow(value, 2);
+                if (isNaN(result) || !isFinite(result)) {
+                    display.textContent = "Error";
+                } else {
+                    display.textContent = result;
+                }
+            } catch (error) {
+                display.textContent = "Error";
+            }
+        }
+
+        /**
+         * Tính căn bậc hai của số hiện tại
+         */
+        function squareRoot() {
+            try {
+                let value = parseFloat(display.textContent);
+                if (value < 0) {
+                    display.textContent = "Error";
+                    return;
+                }
+                let result = Math.sqrt(value);
+                if (isNaN(result) || !isFinite(result)) {
+                    display.textContent = "Error";
+                } else {
+                    display.textContent = result;
+                }
+            } catch (error) {
+                display.textContent = "Error";
+            }
+        }
+
+        /**
+         * Thêm giá trị hiện tại vào bộ nhớ (M+)
+         */
+        function memoryAdd() {
+            try {
+                let value = parseFloat(display.textContent);
+                if (!isNaN(value) && isFinite(value)) {
+                    memory += value;
+                }
+            } catch (error) {
+                // Không làm gì nếu có lỗi
+            }
+        }
+
+        /**
+         * Trừ giá trị hiện tại khỏi bộ nhớ (M-)
+         */
+        function memorySubtract() {
+            try {
+                let value = parseFloat(display.textContent);
+                if (!isNaN(value) && isFinite(value)) {
+                    memory -= value;
+                }
+            } catch (error) {
+                // Không làm gì nếu có lỗi
+            }
+        }
+
+        /**
+         * Gọi giá trị từ bộ nhớ (MR)
+         */
+        function memoryRecall() {
+            display.textContent = memory.toString();
+        }
+
+        /**
+         * Tính toán biểu thức trong ô hiển thị và hiển thị kết quả
+         */
+        function calculate() {
+            try {
+                // Thay thế ký tự '×' và '÷' bằng '*' và '/' để tính toán
+                let expression = display.textContent.replace(/×/g, '*').replace(/÷/g, '/');
+                let result = eval(expression);
+
+                // Kiểm tra kết quả có phải là số hay không
+                if (isNaN(result) || !isFinite(result)) {
+                    display.textContent = "Error";
+                } else {
+                    display.textContent = result;
+                }
+            } catch (error) {
+                display.textContent = "Error";
+            }
+        }
+
+        /**
+         * Xử lý nhập từ bàn phím (tuỳ chọn)
+         * Bạn có thể thêm hỗ trợ nhập từ bàn phím nếu muốn
+         */
+        document.addEventListener('keydown', function(event) {
+            const key = event.key;
+            if (!isNaN(key)) { // Nếu là số
+                appendNumber(key);
+            } else if (key === '.') {
+                appendNumber(key);
+            } else if (['+', '-', '*', '/'].includes(key)) {
+                appendOperator(key);
+            } else if (key === 'Enter' || key === '=') {
+                calculate();
+            } else if (key === 'Backspace') {
+                deleteLast();
+            } else if (key.toLowerCase() === 'c') {
+                clearDisplay();
+            } else if (key.toLowerCase() === 'm') {
+                // Bạn có thể thêm logic để xử lý bộ nhớ từ bàn phím nếu muốn
+            }
+        });
+    </script>
+</body>
+</html>
